@@ -2,6 +2,8 @@
 CXX = clang++
 CXFLAGS := -Wall -Wextra
 
+LDFLAGS := 
+
 SRC := $(wildcard src/*.cxx)
 OBJ := $(patsubst src/%.cxx,%.o,$(SRC))
 
@@ -13,6 +15,7 @@ build: $(OBJ)
 		$(CXX) $(CXFLAGS) -c $< -o $@
 
 link:
+	$(CXX) $(LDFLAGS) $(OBJ) -o libimg
 
 
 clean:
