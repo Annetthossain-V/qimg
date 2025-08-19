@@ -1,8 +1,6 @@
 #pragma once
 #include <vector>
 #include <string>
-#include <iostream>
-#include <cstdint>
 
 
 enum image_mode {
