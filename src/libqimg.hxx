@@ -11,6 +11,6 @@ enum image_mode {
 };
 
 
-int libqimg_file_entry(image_mode mode, std::vector<std::string> paths);
+int QimgMain(image_mode mode, std::vector<std::string> paths);
 
 
