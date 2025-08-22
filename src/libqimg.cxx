@@ -1,12 +1,12 @@
 
 #include "libqimg.hxx"
-#include "highgui.hpp"
-#include "imgcodecs.hpp"
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/opencv.hpp>
 
 #ifndef __LIB__
 int main(int argc, char** argv) { 
-  int x = 0;
+  int x = 1;
   std::vector<std::string> s;
   while (x < argc) {
     s.push_back(argv[x]);
@@ -21,8 +21,7 @@ int QimgMain(image_mode mode, std::vector<std::string> paths) {
     cv::Mat Image = cv::imread(path);
     if (Image.empty())
       return 1;
-    
-    cv::imshow("Image", Image);
+   
   }
   return 0;
 }
