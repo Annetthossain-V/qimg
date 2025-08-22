@@ -1,5 +1,6 @@
 
 #include "libqimg.hxx"
+#include <opencv2/core.hpp>
 
 #ifndef __LIB__
 int main(int argc, char** argv) { 
@@ -14,6 +15,9 @@ int main(int argc, char** argv) {
 #endif
 
 int libqimg_file_entry(image_mode mode, std::vector<std::string> paths) {
+  for (auto &path : paths) {
+    
+  }
   return 0;
 }
 
