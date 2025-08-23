@@ -1,4 +1,5 @@
 Goals:
 * basic control functions 
 * auto white balancer
-* auto sharpening 
+* auto sharpening
+* qimg namespace 
