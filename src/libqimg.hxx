@@ -10,7 +10,12 @@ enum image_mode {
   high_light,
 };
 
+struct ImgCodes {
+  
+} __attribute__((packed));
 
-int QimgMain(image_mode mode, std::vector<std::string> paths);
+
+int QimgFileList(std::vector<image_mode> mode, std::vector<std::string> paths);
+bool QimgMain(image_mode mode, std::string ImagePath);
 
 
