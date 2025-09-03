@@ -11,9 +11,11 @@ pub struct Flags {
 }
 
 #[allow(unused)]
+#[derive(PartialEq)]
 pub enum Options {
     Help,
     Version,
+    NewFile,
 }
 
 #[allow(unused)]
@@ -38,6 +40,7 @@ impl Flags {
                 match arg.as_str() {
                     "-h" | "--help" => { self.options.push(Options::Help); self.info = true; },
                     "-v" | "--version" => { self.options.push(Options::Version); self.info = true; },
+                    "-nf" | "--new-file" => self.options.push(Options::NewFile),
                     _ => panic!("Unknown Option {}", arg),
                 }
             } else {
@@ -69,6 +72,14 @@ impl Flags {
         }
     }
 
+    pub fn contains(&self, item: Options) -> bool {
+        for i in 0..self.options.len() {
+            if self.options[i] == item {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 
@@ -76,6 +87,7 @@ const VERSION: &str = "QImg version 0.1";
 const HELP: &str = 
 r#"usage <Options> <files>
 Options:
- --help     # prints this message
- --version  # prints version info
+ --help         # prints this message
+ --version      # prints version info
+ --new-file     # creates new image file instead of overriding existing one 
 "#;

@@ -23,12 +23,25 @@ fn main() -> IoResult<()> {
     args.parse()?;
     args.info();
 
-    let files: Arc<Vec<String>> = Arc::new(args.files);
+    let mut files: Arc<Vec<String>> = Arc::new(args.files.clone());
     let img_mats: Arc<Mutex<Vec<core::Mat>>> = Arc::new(Mutex::new(Vec::new()));
 
     multi_read_files(files.len(), files.clone(), img_mats.clone())?;
+   
 
-    multi_write_file(files.len(), files.clone(), img_mats.clone())?;
+
+    if args.contains(Options::NewFile) {
+        let mut new_files = args.files;
+        for file in &mut new_files {
+            if file.chars().nth(0).unwrap() == 'Q' {
+                file.insert(0, 'Z');
+                continue;
+            }
+            file.insert(0, 'Q');
+        }
+        files = Arc::new(new_files);
+    }
+    multi_write_file(files.len(),  files.clone(), img_mats.clone());
     Ok(())
 }
 
@@ -81,7 +94,30 @@ fn multi_read_files(file_count: usize, files: Arc<Vec<String>>, img_mats: Arc<Mu
     Ok(())
 }
 
-fn multi_write_file(file_count: usize, files: Arc<Vec<String>>, img_mats: Arc<Mutex<Vec<core::Mat>>>) -> IoResult<()> {
-    todo!();
-    Ok(())
+
+fn multi_write_file(file_count: usize, files: Arc<Vec<String>>, img_mats: Arc<Mutex<Vec<core::Mat>>>) {
+    if file_count == 1 {
+        imgcodecs::imwrite(&files[0], &img_mats.lock().unwrap()[0], &core::Vector::<i32>::new()).unwrap();
+        return;
+    }
+
+    let first_half = file_count / 2;
+    thread::scope(|s| {
+        let first_files = Arc::clone(&files);
+        let first_mats = Arc::clone(&img_mats);
+        s.spawn(move || {
+            for i in 0..first_half {
+                imgcodecs::imwrite(&first_files[i], &first_mats.lock().unwrap()[i], &core::Vector::<i32>::new()).unwrap();
+            }
+        });
+
+        let second_files = Arc::clone(&files);
+        let second_mats = Arc::clone(&img_mats);
+        s.spawn(move || {
+            for i in first_half..file_count {
+                imgcodecs::imwrite(&second_files[i], &second_mats.lock().unwrap()[i], &core::Vector::<i32>::new()).unwrap();
+            }
+        });
+
+    });
 }
