@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use opencv::{
     core,
     imgcodecs,
@@ -5,11 +7,81 @@ use opencv::{
     prelude::*,
     Result,
 };
-use std::io::Result;
+use std::io::Result as IoResult;
+use std::io::{
+    Error,
+    ErrorKind,
+};
+use std::sync::{Mutex, Arc};
+use std::thread;
 
-fn main() -> Result<()> { 
+mod flag;
+use flag::{Flags, Options};
 
-    let img = imgcodecs::imread("photo.jpg", imgcodecs::IM_COLOR);
+fn main() -> IoResult<()> { 
+    let mut args: Flags = Flags::new();
+    args.parse()?;
+    args.info();
 
+    let files: Arc<Vec<String>> = Arc::new(args.files);
+    let img_mats: Arc<Mutex<Vec<core::Mat>>> = Arc::new(Mutex::new(Vec::new()));
+
+    multi_read_files(files.len(), files.clone(), img_mats.clone())?;
+
+    multi_write_file(files.len(), files.clone(), img_mats.clone())?;
+    Ok(())
+}
+
+fn read_file_single(index: usize, files: Arc<Vec<String>>) -> IoResult<core::Mat> {
+    let buf: core::Mat = imgcodecs::imread(&files[index], imgcodecs::IMREAD_COLOR).unwrap();
+    if buf.empty() {
+        eprintln!("Failed to open file {}", &files[index]);
+        return Err(Error::new(ErrorKind::InvalidInput, "Invalid File Type"));
+    }
+    Ok(buf)
+}
+
+fn multi_read_files(file_count: usize, files: Arc<Vec<String>>, img_mats: Arc<Mutex<Vec<core::Mat>>>) -> IoResult<()> {
+    if file_count == 1 {
+        let buffer = read_file_single(0, files.clone())?;
+        img_mats.lock().unwrap().push(buffer);
+        return Ok(());
+    }
+
+    let first_half_end = file_count / 2;
+
+    thread::scope(|s| {
+        let files_clone = Arc::clone(&files);
+        let files_clone2 = Arc::clone(&files);
+        let img_mat_clone = Arc::clone(&img_mats);
+        let img_mat_clone2 = Arc::clone(&img_mats);
+
+        s.spawn(move || {
+            for i in 0..first_half_end {
+                let matrix = read_file_single(i, files_clone.clone());
+                match matrix {
+                    Ok(val) => img_mat_clone.lock().unwrap().push(val),
+                    Err(e) => eprintln!("Warn! Invalid File {} Error {}, skipping...", files_clone[i], e),
+                }
+            }
+        });
+
+        s.spawn(move || {
+            for i in first_half_end..file_count {
+                let matrix = read_file_single(i, files_clone2.clone());
+                match matrix {
+                    Ok(val) => img_mat_clone2.lock().unwrap().push(val),
+                    Err(e) => eprintln!("Warn! Invalid File {} Error {}, skipping...", files_clone2[i], e),
+                }
+            }
+        });
+
+    });
+
+    Ok(())
+}
+
+fn multi_write_file(file_count: usize, files: Arc<Vec<String>>, img_mats: Arc<Mutex<Vec<core::Mat>>>) -> IoResult<()> {
+    todo!();
     Ok(())
 }
