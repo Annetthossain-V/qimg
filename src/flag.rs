@@ -16,6 +16,7 @@ pub enum Options {
     Help,
     Version,
     NewFile,
+    SaturateImgBuiltin,
 }
 
 #[allow(unused)]
@@ -41,6 +42,7 @@ impl Flags {
                     "-h" | "--help" => { self.options.push(Options::Help); self.info = true; },
                     "-v" | "--version" => { self.options.push(Options::Version); self.info = true; },
                     "-nf" | "--new-file" => self.options.push(Options::NewFile),
+                    "--saturate-builtin" => self.options.push(Options::SaturateImgBuiltin),
                     _ => panic!("Unknown Option {}", arg),
                 }
             } else {
@@ -90,4 +92,5 @@ Options:
  --help         # prints this message
  --version      # prints version info
  --new-file     # creates new image file instead of overriding existing one 
+ --saturate-builtin # apply builtin saturation processor
 "#;
