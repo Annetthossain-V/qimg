@@ -7,14 +7,41 @@ use opencv::{
 
 use std::io::Result as IoResult;
 use std::sync::{Arc, Mutex};
+use std::thread;
 
 pub fn img_saturate_builtin(img_mats: Arc<Mutex<Vec<core::Mat>>>) -> IoResult<()> {
-    let mut mats = img_mats.lock().unwrap();
-    let power: f32 = 1.3; // make this dynamic env variable
-    if mats.len() == 1 {
-        img_saturate_builtin_single(&mut mats[0], 1.4)?;
+    let mut power: f32 = 1.4;
+    let mat_len: usize = img_mats.lock().unwrap().len();
+
+    let env_value = std::env::var("QIMG_BUILTIN_SATURATION_POW");
+    match env_value {
+        Ok(val) => {
+            power = val.parse().expect("invalid value format");
+        }
+        Err(e) => {}
+    }
+
+    if mat_len == 1 {
+        img_saturate_builtin_single(&mut img_mats.lock().unwrap()[0], power)?;
         return Ok(());
     }
+
+    let part1 = mat_len / 2;
+    thread::scope(|s| {
+        let mats1 = Arc::clone(&img_mats);
+        let mats2 = Arc::clone(&img_mats);
+
+        s.spawn(move || {
+            for i in 0..part1 {
+                img_saturate_builtin_single(&mut mats1.lock().unwrap()[i], power).unwrap();
+            }
+        });
+        s.spawn(move || {
+            for i in part1..mat_len {
+                img_saturate_builtin_single(&mut mats2.lock().unwrap()[i], power).unwrap();
+            }
+        });
+    });
 
     Ok(())
 }
