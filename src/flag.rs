@@ -1,6 +1,5 @@
-
 use std::env::args;
-use std::io::{Error, Result, ErrorKind};
+use std::io::{Error, ErrorKind, Result};
 use std::path::Path;
 
 #[allow(unused)]
@@ -17,6 +16,7 @@ pub enum Options {
     Version,
     NewFile,
     SaturateImgBuiltin,
+    WhiteEnhance,
 }
 
 #[allow(unused)]
@@ -39,10 +39,17 @@ impl Flags {
         for arg in args {
             if (arg.chars().nth(0).unwrap() == '-') {
                 match arg.as_str() {
-                    "-h" | "--help" => { self.options.push(Options::Help); self.info = true; },
-                    "-v" | "--version" => { self.options.push(Options::Version); self.info = true; },
+                    "-h" | "--help" => {
+                        self.options.push(Options::Help);
+                        self.info = true;
+                    }
+                    "-v" | "--version" => {
+                        self.options.push(Options::Version);
+                        self.info = true;
+                    }
                     "-nf" | "--new-file" => self.options.push(Options::NewFile),
                     "--saturate-builtin" => self.options.push(Options::SaturateImgBuiltin),
+                    "--white-enhance" => self.options.push(Options::WhiteEnhance),
                     _ => panic!("Unknown Option {}", arg),
                 }
             } else {
@@ -84,13 +91,12 @@ impl Flags {
     }
 }
 
-
 const VERSION: &str = "QImg version 0.1";
-const HELP: &str = 
-r#"usage <Options> <files>
+const HELP: &str = r#"usage <Options> <files>
 Options:
  --help         # prints this message
  --version      # prints version info
  --new-file     # creates new image file instead of overriding existing one 
  --saturate-builtin # apply builtin saturation processor
+ --white-enhance # apply white enhancer processor
 "#;

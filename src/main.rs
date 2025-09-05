@@ -25,6 +25,9 @@ fn main() -> IoResult<()> {
     if args.contains(Options::SaturateImgBuiltin) {
         img_saturate_builtin(img_mats.clone())?;
     }
+    if args.contains(Options::WhiteEnhance) {
+        multi_white_enhance(img_mats.clone());
+    }
 
     if args.contains(Options::NewFile) {
         let mut new_files = args.files;

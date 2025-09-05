@@ -85,3 +85,44 @@ fn img_saturate_builtin_single(img_mat: &mut core::Mat, n: f32) -> IoResult<()> 
     *img_mat = out;
     Ok(())
 }
+
+pub fn multi_white_enhance(matrix: Arc<Mutex<Vec<core::Mat>>>) {
+    let matrix_len = matrix.lock().unwrap().len();
+    if matrix_len == 1 {
+        white_enhance_single(&mut matrix.lock().unwrap()[0]);
+        return;
+    }
+
+    let part1 = matrix_len / 2;
+    thread::scope(|s| {
+        let mat1 = Arc::clone(&matrix);
+        let mat2 = Arc::clone(&matrix);
+
+        s.spawn(move || {
+            for i in 0..part1 {
+                white_enhance_single(&mut mat1.lock().unwrap()[i]);
+            }
+        });
+        s.spawn(move || {
+            for i in part1..matrix_len {
+                white_enhance_single(&mut mat2.lock().unwrap()[i]);
+            }
+        });
+    });
+}
+
+fn white_enhance_single(matrix: &mut core::Mat) {
+    assert_eq!(matrix.typ(), core::CV_8UC3);
+
+    let rows = matrix.rows();
+    let cols = matrix.cols();
+
+    for y in 0..rows {
+        for x in 0..cols {
+            let pixel = *matrix.at_2d::<core::Vec3b>(y, x).unwrap();
+            // pixel format bgr
+
+            println!("blue value: {}", pixel[0]);
+        }
+    }
+}
